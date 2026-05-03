@@ -12,8 +12,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: e5999c0c1cecbe07b744bfd35667eb71
-          command: pages deploy . --project-name pm-quiz --branch master
+        run: npx wrangler pages deploy . --project-name pm-quiz --branch master
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: e5999c0c1cecbe07b744bfd35667eb71
