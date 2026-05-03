@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PM Quiz — PMBOK® 7</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #000000;
+      --surface: rgba(255,255,255,0.05);
+      --surface-hover: rgba(255,255,255,0.09);
+      --border: rgba(255,255,255,0.10);
+      --border-hover: rgba(255,255,255,0.22);
+      --text: #f5f5f7;
+      --text-secondary: rgba(245,245,247,0.6);
+      --accent-start: #0071e3;
+      --accent-end: #bf5af2;
+      --correct: #30d158;
+      --wrong: #ff453a;
+      --correct-bg: rgba(48,209,88,0.15);
+      --wrong-bg: rgba(255,69,58,0.15);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes blurIn {
+      from { opacity: 0; filter: blur(16px); }
+      to   { opacity: 1; filter: blur(0); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.03); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: scale(0.5); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes progressGrow {
+      from { width: 0; }
+    }
+
+    /* ── Screen system ── */
+    .screen {
+      display: none;
+      min-height: 100vh;
+      width: 100%;
+    }
+    .screen.active {
+      display: flex;
+    }
+
+    /* ── Nav bar ── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-size: 15px;
+      font-weight: 600;
+      background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.3px;
+    }
+    .lang-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .lang-btn.active {
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      color: #fff;
+    }
+    .lang-btn:hover:not(.active) {
+      color: var(--text);
+      background: var(--surface-hover);
+    }
+
+    /* ══════════════════════════════════════
+       LANDING SCREEN
+    ══════════════════════════════════════ */
+    #screen-landing {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background glow orbs */
+    #screen-landing::before {
+      content: '';
+      position: absolute;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 800px; height: 600px;
+      background: radial-gradient(ellipse at center,
+        rgba(0,113,227,0.18) 0%,
+        rgba(191,90,242,0.10) 40%,
+        transparent 70%);
+      pointer-events: none;
+    }
+
+    .landing-eyebrow {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .landing-title {
+      font-size: clamp(56px, 10vw, 96px);
+      font-weight: 700;
+      letter-spacing: -3px;
+      line-height: 1;
+      background: linear-gradient(135deg,
+        #f5f5f7 0%,
+        var(--accent-start) 35%,
+        var(--accent-end) 65%,
+        #f5f5f7 100%);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: blurIn 0.8s ease 0.1s both, shimmer 6s ease infinite 1s;
+      margin-bottom: 24px;
+    }
+
+    .landing-subtitle {
+      font-size: clamp(17px, 2.5vw, 22px);
+      font-weight: 400;
+      color: var(--text-secondary);
+      max-width: 520px;
+      line-height: 1.5;
+      animation: fadeUp 0.7s ease 0.25s both;
+      margin-bottom: 48px;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      padding: 16px 40px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      animation: fadeUp 0.7s ease 0.4s both, pulse 3s ease-in-out 1.5s infinite;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 8px 30px rgba(0,113,227,0.35);
+    }
+    .cta-btn:hover {
+      transform: scale(1.04) !important;
+      box-shadow: 0 12px 40px rgba(0,113,227,0.5);
+      animation: none;
+    }
+    .cta-btn:active { transform: scale(0.97) !important; }
+
+    .landing-stats {
+      display: flex;
+      gap: 40px;
+      margin-top: 64px;
+      animation: fadeUp 0.7s ease 0.55s both;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ══════════════════════════════════════
+       LANGUAGE SELECT MODAL
+    ══════════════════════════════════════ */
+    #screen-lang {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .lang-modal {
+      background: rgba(20,20,20,0.95);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      animation: fadeUp 0.4s ease both;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+    }
+
+    .lang-modal h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    .lang-modal p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+
+    .lang-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .lang-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      color: var(--text);
+      text-align: center;
+    }
+    .lang-card:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,113,227,0.15);
+    }
+    .lang-card:active { transform: scale(0.97); }
+
+    .lang-card .flag {
+      font-size: 40px;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .lang-card .lang-name {
+      font-size: 16px;
+      font-weight: 600;
+      display: block;
+    }
+    .lang-card .lang-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* ══════════════════════════════════════
+       QUIZ SCREEN
+    ══════════════════════════════════════ */
+    #screen-quiz {
+      flex-direction: column;
+      padding-top: 65px;
+    }
+
+    .progress-bar-wrap {
+      position: fixed;
+      top: 57px; left: 0; right: 0;
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      z-index: 90;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+      transition: width 0.4s ease;
+      border-radius: 0 2px 2px 0;
+    }
+
+    .quiz-inner {
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+      animation: slideIn 0.35s ease both;
+    }
+
+    .quiz-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    .section-badge {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 12px;
+      max-width: 240px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .question-counter {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .question-counter span {
+      color: var(--text);
+    }
+
+    .question-text {
+      font-size: clamp(18px, 3vw, 22px);
+      font-weight: 500;
+      line-height: 1.55;
+      margin-bottom: 32px;
+      letter-spacing: -0.2px;
+    }
+
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .option-btn {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.45;
+      transition: all 0.18s ease;
+      width: 100%;
+    }
+    .option-btn:hover:not([disabled]) {
+      background: var(--surface-hover);
+      border-color: var(--border-hover);
+      transform: translateX(3px);
+    }
+    .option-btn[disabled] { cursor: default; }
+
+    .option-letter {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 1px;
+      transition: all 0.18s ease;
+    }
+
+    .option-btn.correct {
+      background: var(--correct-bg);
+      border-color: var(--correct);
+    }
+    .option-btn.correct .option-letter {
+      background: var(--correct);
+      border-color: var(--correct);
+      color: #000;
+    }
+    .option-btn.wrong {
+      background: var(--wrong-bg);
+      border-color: var(--wrong);
+    }
+    .option-btn.wrong .option-letter {
+      background: var(--wrong);
+      border-color: var(--wrong);
+      color: #fff;
+    }
+
+    /* ══════════════════════════════════════
+       RESULTS SCREEN
+    ══════════════════════════════════════ */
+    #screen-results {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 24px 60px;
+      text-align: center;
+    }
+
+    .results-inner {
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .score-circle {
+      position: relative;
+      width: 180px; height: 180px;
+      margin: 0 auto 32px;
+    }
+
+    .score-circle svg {
+      width: 180px; height: 180px;
+      transform: rotate(-90deg);
+    }
+
+    .score-circle-bg {
+      fill: none;
+      stroke: rgba(255,255,255,0.08);
+      stroke-width: 8;
+    }
+
+    .score-circle-fill {
+      fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke: url(#scoreGrad);
+      stroke-dasharray: 502;
+      stroke-dashoffset: 502;
+      transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1) 0.3s;
+    }
+
+    .score-circle-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-number {
+      font-size: 48px;
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1;
+      animation: countUp 0.5s ease 0.2s both;
+    }
+
+    .score-denom {
+      font-size: 18px;
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    .results-grade {
+      font-size: clamp(28px, 5vw, 40px);
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+
+    .results-message {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 400px;
+      margin: 0 auto 48px;
+      line-height: 1.5;
+    }
+
+    .results-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 14px 32px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 6px 24px rgba(0,113,227,0.3);
+    }
+    .btn-primary:hover { transform: scale(1.04); box-shadow: 0 10px 32px rgba(0,113,227,0.45); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 500;
+      padding: 14px 32px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover { background: var(--surface-hover); border-color: var(--border-hover); }
+    .btn-secondary:active { transform: scale(0.97); }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .landing-stats { gap: 24px; }
+      .lang-cards { grid-template-columns: 1fr; }
+      .quiz-inner { padding: 32px 16px 60px; }
+      .option-btn { padding: 14px 16px; font-size: 15px; }
+      .nav { padding: 14px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navigation ── -->
+  <nav class="nav" id="nav">
+    <span class="nav-logo" id="nav-logo">PM Quiz</span>
+    <div class="lang-toggle" id="lang-toggle">
+      <button class="lang-btn active" id="btn-uk" onclick="switchLang('uk')">UA</button>
+      <button class="lang-btn" id="btn-en" onclick="switchLang('en')">EN</button>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════
+       SCREEN: Landing
+  ══════════════════════════════════════ -->
+  <section class="screen active" id="screen-landing">
+    <div>
+      <p class="landing-eyebrow" id="eyebrow">PMBOK® 7 Preparation</p>
+      <h1 class="landing-title">PM Quiz</h1>
+      <p class="landing-subtitle" id="landing-sub">
+        Test your Project Management knowledge across all five domains of PMBOK® Guide 7th Edition.
+      </p>
+      <button class="cta-btn" id="cta-btn" onclick="openLangSelect()">
+        <span id="cta-text">Почати квіз</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="landing-stats">
+        <div class="stat">
+          <div class="stat-num">100</div>
+          <div class="stat-label" id="stat-q">Questions</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">5</div>
+          <div class="stat-label" id="stat-s">Sections</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">20</div>
+          <div class="stat-label" id="stat-r">Per round</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SCREEN: Language Select
+  ══════════════════════════════════════ -->
+  <section class="screen" id="screen-lang" style="position:fixed;inset:0;z-index:200;">
+    <div class="lang-modal">
+      <h2 id="lang-title">Choose language</h2>
+      <p id="lang-desc">Select the language for your quiz session</p>
+      <div class="lang-cards">
+        <button class="lang-card" onclick="startQuiz('uk')">
+          <span class="flag">🇺🇦</span>
+          <span class="lang-name">Українська</span>
+          <span class="lang-sub">Ukrainian</span>
+        </button>
+        <button class="lang-card" onclick="startQuiz('en')">
+          <span class="flag">🇬🇧</span>
+          <span class="lang-name">English</span>
+          <span class="lang-sub">Англійська</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SCREEN: Quiz
+  ══════════════════════════════════════ -->
+  <section class="screen" id="screen-quiz">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+    <div class="quiz-inner" id="quiz-inner">
+      <div class="quiz-meta">
+        <div class="section-badge" id="section-badge">Section</div>
+        <div class="question-counter"><span id="q-current">1</span> / <span id="q-total">20</span></div>
+      </div>
+      <div class="question-text" id="question-text">Loading…</div>
+      <div class="options-grid" id="options-grid"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SCREEN: Results
+  ══════════════════════════════════════ -->
+  <section class="screen" id="screen-results">
+    <div class="results-inner">
+      <div class="score-circle">
+        <svg viewBox="0 0 180 180">
+          <defs>
+            <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#0071e3"/>
+              <stop offset="100%" style="stop-color:#bf5af2"/>
+            </linearGradient>
+          </defs>
+          <circle class="score-circle-bg" cx="90" cy="90" r="80"/>
+          <circle class="score-circle-fill" id="score-arc" cx="90" cy="90" r="80"/>
+        </svg>
+        <div class="score-circle-text">
+          <div class="score-number" id="score-number">0</div>
+          <div class="score-denom" id="score-denom">/20</div>
+        </div>
+      </div>
+      <div class="results-grade" id="results-grade">Great job!</div>
+      <div class="results-message" id="results-message">Keep studying to reach the next level.</div>
+      <div class="results-actions">
+        <button class="btn-primary" id="btn-restart" onclick="restartQuiz()">
+          <span id="restart-text">Play again</span>
+        </button>
+        <button class="btn-secondary" id="btn-home" onclick="goHome()">
+          <span id="home-text">Home</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <script src="questions.js"></script>
+  <script>
+    // ── State ──────────────────────────────────────────
+    let lang = 'uk';
+    let pool = [];
+    let current = 0;
+    let score = 0;
+    let answered = false;
+
+    // ── i18n strings ──────────────────────────────────
+    const T = {
+      uk: {
+        eyebrow:      'Підготовка до PMBOK® 7',
+        sub:          'Перевірте свої знання з управління проектами за всіма п\'ятьма розділами PMBOK® Guide 7-е видання.',
+        cta:          'Почати квіз',
+        stat_q:       'Питань',
+        stat_s:       'Розділів',
+        stat_r:       'На раунд',
+        lang_title:   'Оберіть мову',
+        lang_desc:    'Виберіть мову для вашого квізу',
+        counter_of:   '/ 20',
+        grade_exc:    'Відмінно! 🏆',
+        grade_good:   'Добре! 👍',
+        grade_keep:   'Продовжуйте практикуватись',
+        msg_exc:      'Ви майстер PMBOK® 7! Відмінний результат.',
+        msg_good:     'Хороший результат. Ще трохи практики — і ви готові!',
+        msg_keep:     'Вивчіть матеріал ще раз. У вас все вийде!',
+        restart:      'Зіграти ще',
+        home:         'Головна',
+        denom:        '/20',
+      },
+      en: {
+        eyebrow:      'PMBOK® 7 Preparation',
+        sub:          'Test your Project Management knowledge across all five domains of PMBOK® Guide 7th Edition.',
+        cta:          'Start Quiz',
+        stat_q:       'Questions',
+        stat_s:       'Sections',
+        stat_r:       'Per round',
+        lang_title:   'Choose language',
+        lang_desc:    'Select the language for your quiz session',
+        counter_of:   '/ 20',
+        grade_exc:    'Excellent! 🏆',
+        grade_good:   'Good job! 👍',
+        grade_keep:   'Keep practicing',
+        msg_exc:      'You\'ve mastered PMBOK® 7! Outstanding result.',
+        msg_good:     'Great result. A bit more practice and you\'re ready!',
+        msg_keep:     'Review the material again. You\'ve got this!',
+        restart:      'Play again',
+        home:         'Home',
+        denom:        '/20',
+      }
+    };
+
+    // ── Apply UI language labels ───────────────────────
+    function applyLang(l) {
+      lang = l;
+      const t = T[l];
+      document.getElementById('eyebrow').textContent       = t.eyebrow;
+      document.getElementById('landing-sub').textContent   = t.sub;
+      document.getElementById('cta-text').textContent      = t.cta;
+      document.getElementById('stat-q').textContent        = t.stat_q;
+      document.getElementById('stat-s').textContent        = t.stat_s;
+      document.getElementById('stat-r').textContent        = t.stat_r;
+      document.getElementById('lang-title').textContent    = t.lang_title;
+      document.getElementById('lang-desc').textContent     = t.lang_desc;
+      document.getElementById('restart-text').textContent  = t.restart;
+      document.getElementById('home-text').textContent     = t.home;
+      document.getElementById('score-denom').textContent   = t.denom;
+
+      document.getElementById('btn-uk').classList.toggle('active', l === 'uk');
+      document.getElementById('btn-en').classList.toggle('active', l === 'en');
+    }
+
+    function switchLang(l) {
+      applyLang(l);
+    }
+
+    // ── Screen management ─────────────────────────────
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + id).classList.add('active');
+    }
+
+    function openLangSelect() {
+      document.getElementById('screen-lang').classList.add('active');
+    }
+
+    // ── Fisher-Yates shuffle ──────────────────────────
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // ── Start quiz ────────────────────────────────────
+    function startQuiz(selectedLang) {
+      lang = selectedLang;
+      applyLang(lang);
+
+      pool = shuffle([...QUESTIONS]).slice(0, 20);
+      current = 0;
+      score = 0;
+      answered = false;
+
+      document.getElementById('screen-lang').classList.remove('active');
+      showScreen('quiz');
+      renderQuestion();
+    }
+
+    // ── Render current question ───────────────────────
+    function renderQuestion() {
+      const q = pool[current];
+      const data = q[lang];
+
+      // Progress
+      const pct = (current / 20) * 100;
+      document.getElementById('progress-fill').style.width = pct + '%';
+
+      // Counter
+      document.getElementById('q-current').textContent = current + 1;
+
+      // Section badge
+      const section = lang === 'uk' ? q.section_uk : q.section_en;
+      document.getElementById('section-badge').textContent = section;
+
+      // Question
+      document.getElementById('question-text').textContent = data.question;
+
+      // Options
+      const grid = document.getElementById('options-grid');
+      grid.innerHTML = '';
+
+      // Shuffle options display order
+      const opts = shuffle([...data.options]);
+
+      opts.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.dataset.letter = opt.letter;
+        btn.innerHTML = `
+          <div class="option-letter">${opt.letter}</div>
+          <div class="option-text">${opt.text}</div>
+        `;
+        btn.addEventListener('click', () => selectAnswer(opt.letter));
+        grid.appendChild(btn);
+      });
+
+      // Slide-in animation on quiz inner
+      const inner = document.getElementById('quiz-inner');
+      inner.style.animation = 'none';
+      void inner.offsetWidth;
+      inner.style.animation = 'slideIn 0.35s ease both';
+    }
+
+    // ── Handle answer selection ───────────────────────
+    function selectAnswer(letter) {
+      if (answered) return;
+      answered = true;
+
+      const data = pool[current][lang];
+      const correctLetter = data.options.find(o => o.correct).letter;
+      const isCorrect = letter === correctLetter;
+
+      if (isCorrect) score++;
+
+      // Disable all buttons and apply highlight
+      const buttons = document.querySelectorAll('.option-btn');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        const l = btn.dataset.letter;
+        if (l === correctLetter) {
+          btn.classList.add('correct');
+        } else if (l === letter && !isCorrect) {
+          btn.classList.add('wrong');
+        }
+      });
+
+      // Update progress to include current answered
+      const pct = ((current + 1) / 20) * 100;
+      document.getElementById('progress-fill').style.width = pct + '%';
+
+      // Auto-advance
+      setTimeout(() => {
+        current++;
+        answered = false;
+        if (current < 20) {
+          renderQuestion();
+        } else {
+          showResults();
+        }
+      }, 1800);
+    }
+
+    // ── Show results ──────────────────────────────────
+    function showResults() {
+      showScreen('results');
+      const t = T[lang];
+      const pct = score / 20;
+
+      document.getElementById('score-number').textContent = score;
+
+      // Animate arc
+      const arc = document.getElementById('score-arc');
+      const circumference = 2 * Math.PI * 80; // 502.65
+      const offset = circumference * (1 - pct);
+      setTimeout(() => {
+        arc.style.strokeDashoffset = offset;
+      }, 50);
+
+      // Grade
+      let grade, msg;
+      if (pct >= 0.8) {
+        grade = t.grade_exc; msg = t.msg_exc;
+      } else if (pct >= 0.6) {
+        grade = t.grade_good; msg = t.msg_good;
+      } else {
+        grade = t.grade_keep; msg = t.msg_keep;
+      }
+
+      document.getElementById('results-grade').textContent   = grade;
+      document.getElementById('results-message').textContent = msg;
+    }
+
+    // ── Restart / Home ────────────────────────────────
+    function restartQuiz() {
+      openLangSelect();
+      showScreen('landing');
+      openLangSelect();
+    }
+
+    function goHome() {
+      showScreen('landing');
+    }
+
+    // ── Init ──────────────────────────────────────────
+    applyLang('uk');
+
+    // ── Service Worker ────────────────────────────────
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
