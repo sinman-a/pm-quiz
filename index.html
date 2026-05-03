@@ -139,9 +139,9 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 120px 24px 60px;
+      padding: 120px 24px 80px;
       position: relative;
-      overflow: hidden;
+      overflow-y: auto;
     }
 
     /* Background glow orbs */
@@ -156,16 +156,6 @@
         rgba(191,90,242,0.10) 40%,
         transparent 70%);
       pointer-events: none;
-    }
-
-    .landing-eyebrow {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: 20px;
-      animation: fadeUp 0.6s ease both;
     }
 
     .landing-title {
@@ -224,7 +214,45 @@
       display: flex;
       gap: 40px;
       margin-top: 64px;
+      justify-content: center;
       animation: fadeUp 0.7s ease 0.55s both;
+    }
+
+    /* ── Category cards ── */
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-top: 40px;
+      max-width: 860px;
+      width: 100%;
+      animation: fadeUp 0.7s ease 0.65s both;
+    }
+    .cat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 14px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .cat-card:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+    }
+    .cat-icon { font-size: 26px; display: block; margin-bottom: 10px; }
+    .cat-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    @media (max-width: 768px) {
+      .categories { grid-template-columns: repeat(3, 1fr); }
     }
     .stat {
       text-align: center;
@@ -583,6 +611,7 @@
     /* ── Responsive ── */
     @media (max-width: 480px) {
       .landing-stats { gap: 24px; }
+      .categories { grid-template-columns: repeat(2, 1fr); }
       .lang-cards { grid-template-columns: 1fr; }
       .quiz-inner { padding: 32px 16px 60px; }
       .option-btn { padding: 14px 16px; font-size: 15px; }
@@ -606,10 +635,9 @@
   ══════════════════════════════════════ -->
   <section class="screen active" id="screen-landing">
     <div>
-      <p class="landing-eyebrow" id="eyebrow">PMBOK® 7 Preparation</p>
       <h1 class="landing-title">PM Quiz</h1>
       <p class="landing-subtitle" id="landing-sub">
-        Test your Project Management knowledge across all five domains of PMBOK® Guide 7th Edition.
+        Перевірте свої знання з управління проектами
       </p>
       <button class="cta-btn" id="cta-btn" onclick="openLangSelect()">
         <span id="cta-text">Почати квіз</span>
@@ -620,15 +648,37 @@
       <div class="landing-stats">
         <div class="stat">
           <div class="stat-num">100</div>
-          <div class="stat-label" id="stat-q">Questions</div>
+          <div class="stat-label" id="stat-q">Питань</div>
         </div>
         <div class="stat">
           <div class="stat-num">5</div>
-          <div class="stat-label" id="stat-s">Sections</div>
+          <div class="stat-label" id="stat-s">Розділів</div>
         </div>
         <div class="stat">
           <div class="stat-num">20</div>
-          <div class="stat-label" id="stat-r">Per round</div>
+          <div class="stat-label" id="stat-r">На раунд</div>
+        </div>
+      </div>
+      <div class="categories">
+        <div class="cat-card">
+          <span class="cat-icon">🏗️</span>
+          <span class="cat-title" id="cat1">Система постачання цінності</span>
+        </div>
+        <div class="cat-card">
+          <span class="cat-icon">⚡</span>
+          <span class="cat-title" id="cat2">12 Принципів управління</span>
+        </div>
+        <div class="cat-card">
+          <span class="cat-icon">🔮</span>
+          <span class="cat-title" id="cat3">8 Сфер виконання</span>
+        </div>
+        <div class="cat-card">
+          <span class="cat-icon">🔧</span>
+          <span class="cat-title" id="cat4">Пристосування</span>
+        </div>
+        <div class="cat-card">
+          <span class="cat-icon">📐</span>
+          <span class="cat-title" id="cat5">Моделі, методи та артефакти</span>
         </div>
       </div>
     </div>
@@ -719,12 +769,16 @@
     // ── i18n strings ──────────────────────────────────
     const T = {
       uk: {
-        eyebrow:      'Підготовка до PMBOK® 7',
-        sub:          'Перевірте свої знання з управління проектами за всіма п\'ятьма розділами PMBOK® Guide 7-е видання.',
+        sub:          'Перевірте свої знання з управління проектами',
         cta:          'Почати квіз',
         stat_q:       'Питань',
         stat_s:       'Розділів',
         stat_r:       'На раунд',
+        cat1: 'Система постачання цінності',
+        cat2: '12 Принципів управління',
+        cat3: '8 Сфер виконання',
+        cat4: 'Пристосування',
+        cat5: 'Моделі, методи та артефакти',
         lang_title:   'Оберіть мову',
         lang_desc:    'Виберіть мову для вашого квізу',
         counter_of:   '/ 20',
@@ -739,12 +793,16 @@
         denom:        '/20',
       },
       en: {
-        eyebrow:      'PMBOK® 7 Preparation',
-        sub:          'Test your Project Management knowledge across all five domains of PMBOK® Guide 7th Edition.',
+        sub:          'Test your Project Management knowledge',
         cta:          'Start Quiz',
         stat_q:       'Questions',
         stat_s:       'Sections',
         stat_r:       'Per round',
+        cat1: 'Value Delivery System',
+        cat2: '12 PM Principles',
+        cat3: '8 Performance Domains',
+        cat4: 'Tailoring',
+        cat5: 'Models, Methods & Artifacts',
         lang_title:   'Choose language',
         lang_desc:    'Select the language for your quiz session',
         counter_of:   '/ 20',
@@ -764,7 +822,6 @@
     function applyLang(l) {
       lang = l;
       const t = T[l];
-      document.getElementById('eyebrow').textContent       = t.eyebrow;
       document.getElementById('landing-sub').textContent   = t.sub;
       document.getElementById('cta-text').textContent      = t.cta;
       document.getElementById('stat-q').textContent        = t.stat_q;
@@ -775,6 +832,9 @@
       document.getElementById('restart-text').textContent  = t.restart;
       document.getElementById('home-text').textContent     = t.home;
       document.getElementById('score-denom').textContent   = t.denom;
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById('cat' + i).textContent = t['cat' + i];
+      }
 
       document.getElementById('btn-uk').classList.toggle('active', l === 'uk');
       document.getElementById('btn-en').classList.toggle('active', l === 'en');
