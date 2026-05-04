@@ -1,4 +1,4 @@
-const CACHE = 'pm-quiz-v2';
+const CACHE = 'pm-quiz-v3';
 const ASSETS = [
   '/',
   '/index.html',
